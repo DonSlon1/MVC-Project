@@ -1,7 +1,11 @@
 {
     "autoload": {
         "psr-4": {
-            "Core\\": "Core/"
+            "Core\\": "Core/",
+            "App\\": "App/"
         }
+    },
+    "require": {
+        "mustache/mustache": "^2.14"
     }
 }

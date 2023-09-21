@@ -9,6 +9,7 @@ return[
         'user' => 'protein_devcrm_cz',
         'password' => 'TaUY1foK6zGtqGvGcl'
     ],
+    'logDir' => dirname($_SERVER['DOCUMENT_ROOT']).'/data/log/',
     'defaultPermissions' => [
         'dir' => 0775,
         'file' => 0664

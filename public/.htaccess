@@ -2,6 +2,12 @@
 RewriteEngine On
 
 # Uncomment the following line if your public folder isn't the web server's root
+
+# Exclude specific file types and directories from redirection
+RewriteCond %{REQUEST_URI} !\.(css|js|jpg|jpeg|png|gif)$ [NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
 # RewriteBase /
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

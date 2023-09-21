@@ -119,7 +119,7 @@ class Manager
      */
     public function getPhpContents(string $path): mixed
     {
-        if (!file_exists($path)) {
+        if (!$this->getContents($path)) {
             throw new FileError("File '$path' does not exist.");
         }
 
@@ -176,6 +176,73 @@ class Manager
         }
 
         return file_put_contents($path, $data, $flags) !== false;
+    }
+
+    /**
+     * Get data from a file.
+     *
+     * @param string $path
+     * @return string|false
+     * @throws FileError
+     */
+    public function getContents(string $path): string|false
+    {
+        if (!$this->fileExists($path)) {
+            throw new FileError("File '$path' does not exist.");
+        }
+
+        return file_get_contents($path);
+    }
+
+    /**
+     * Check if a file exists.
+     *
+     * @param string $path
+     * @return bool
+     */
+    public function fileExists(string $path): bool
+    {
+        return file_exists($path);
+    }
+
+    public function getJsonContents(string $path): mixed
+    {
+        if (!$this->fileExists($path)) {
+            throw new FileError("File '$path' does not exist.");
+        }
+
+        if (strtolower(substr($path, -5)) !== '.json') {
+            throw new FileError("File '$path' is not JSON.");
+        }
+
+        $contents = $this->getContents($path);
+
+        if ($contents === false) {
+            throw new FileError("Unable to read file '$path'.");
+        }
+
+        $data = json_decode($contents, true);
+
+        if ($data === null) {
+            throw new FileError("Unable to decode JSON from file '$path'.");
+        }
+
+        return $data;
+    }
+
+    public function putJsonContents(string $path, mixed $data, int $flags = 0): bool
+    {
+        if (!$this->checkCreateFile($path)) {
+            throw new PermissionError("Unable to create file '$path'.");
+        }
+
+        $contents = json_encode($data, JSON_PRETTY_PRINT);
+
+        if ($contents === false) {
+            throw new FileError("Unable to encode JSON for file '$path'.");
+        }
+
+        return $this->putContents($path, $contents, $flags);
     }
 
 }

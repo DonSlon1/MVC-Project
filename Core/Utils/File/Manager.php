@@ -3,13 +3,10 @@
 namespace Core\Utils\File;
 
 use Core\Utils\Config\Manager as ConfigManager;
-use DI\DependencyException;
-use DI\NotFoundException;
 use Core\Utils\File\Exceptions\{
     FileError,
     PermissionError
 };
-use DI\Container as DIContainer;
 
 class Manager
 {
@@ -23,11 +20,17 @@ class Manager
         $this->permissions = $permissions;
     }
 
-    private function mkdir(string $path, $permission = 0775): bool
+    /**
+     * Create a directory recursively with permissions.
+     * @param string $path
+     * @param ?int $permission
+     * @return bool
+     */
+    private function mkdir(string $path, ?int $permission = 0775): bool
     {
 
         if ($permission === null) {
-            $permission = "0775";
+            $permission = 0775;
         }
         if (file_exists($path) && is_dir($path)) {
             return true;
@@ -42,15 +45,26 @@ class Manager
 
     }
 
-
+    /**
+     * Get permissions for files and directories.
+     *
+     * @return array
+     */
     public function getPermissions(): array
     {
         if ($this->permissions !== null) {
             return $this->permissions;
         }
         return $this->configManager->get('defaultPermissions');
-        //return (new ConfigManager($this))->get('defaultPermissions');
     }
+
+    /**
+     * Check if a file exists and create it if not.
+     *
+     * @param string $filePath
+     * @return bool
+     * @throws PermissionError
+     */
     public function checkCreateFile(string $filePath): bool
     {
         if (file_exists($filePath)) {
@@ -76,8 +90,14 @@ class Manager
         return true;
     }
 
-
-    public function setPermissions(string $path,$permission = 0664): bool
+    /**
+     * Set permissions for a file or directory.
+     *
+     * @param string $path
+     * @param ?int $permission
+     * @return bool
+     */
+    public function setPermissions(string $path, ?int $permission = 0664): bool
     {
         if ($permission === null) {
             $permission = 0664;
@@ -110,6 +130,45 @@ class Manager
         return include($path);
     }
 
+    /**
+     * Put data to a PHP file.
+     *
+     * @param string $path
+     * @param mixed $data
+     * @param int $flags Flags for file_put_contents().
+     * @return bool
+     */
+    public function putPhpContents(string $path, mixed $data, int $flags=0): bool
+    {
+
+        return $this->putContents($path, $this->wrapForDataExport($data),$flags);
+    }
+
+    /**
+     * Wrap data for export to PHP file.
+     *
+     * @param array $data
+     * @return string|false
+     */
+    public function wrapForDataExport(array $data): false|string
+    {
+        if (!isset($data)) {
+            return false;
+        }
+
+        return "<?php\n" .
+            "return " . var_export($data, true) . ";\n";
+
+    }
+
+    /**
+     * Get data from a file.
+     *
+     * @param string $path
+     * @param $data
+     * @param int $flags Flags for file_put_contents().
+     * @return bool
+     */
     public function putContents(string $path, $data, int $flags = 0,): bool
     {
         if ($this->checkCreateFile($path) === false) {
@@ -118,4 +177,5 @@ class Manager
 
         return file_put_contents($path, $data, $flags) !== false;
     }
+
 }

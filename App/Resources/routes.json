@@ -1,0 +1,25 @@
+[
+  {
+    "route": "/",
+    "method": "get",
+    "params": {
+      "controller": "ApiIndex",
+      "action": "index"
+    }
+  },
+  {
+    "route": "{controller}",
+    "method": "get",
+    "params": {
+      "action": "index"
+    }
+  },
+  {
+    "route": "api/{controller}",
+    "method": "get",
+    "params": {
+      "action": "index"
+    }
+  }
+
+]

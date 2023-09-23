@@ -3,8 +3,7 @@
 namespace Core\ORM;
 
 use Core\ORM\Exceptions\EntityNotFound;
-use Core\ORM\QueryBuilder;
-use Core\ORM\Database;
+
 class EntityRepository
 {
 

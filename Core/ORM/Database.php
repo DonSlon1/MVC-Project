@@ -38,6 +38,18 @@ class Database
         return $stm;
     }
 
+
+    /**
+     * Insert data to db and return entity id
+     * @param string $sql
+     * @param array $params
+     * @return string
+     */
+    public function insertQuery(string $sql, array $params=[]): string
+    {
+        $this->query($sql, $params);
+        return $this->conn->lastInsertId();
+    }
     /**
      * Fetch date form database if not found return empty array
      * @param PDOStatement $stm
@@ -47,7 +59,7 @@ class Database
     public function fetch(PDOStatement $stm,int $flags = 2): array
     {
         $stm->setFetchMode($flags);
-        $fetchData = $stm->fetchAll($flags);
+        $fetchData = $stm->fetchAll();
         if ($fetchData === false) {
             return [];
         }

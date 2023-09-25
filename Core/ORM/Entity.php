@@ -5,38 +5,88 @@ namespace Core\ORM;
 use Core\ORM\Exceptions\AttributeNotFound;
 class Entity
 {
-    public array $attributes;
-
-    public function __construct(array $attributes = [])
+    private array $attributes;
+    private ?string $id;
+    private ?bool $isNew = false;
+    public function __construct(private readonly string $entityType, ?array $attributes = [])
     {
+        if (isset($attributes['id'])) {
+            $this->id = $attributes['id'];
+            unset($attributes['id']);
+        }else{
+            $this->id = null;
+        }
         $this->attributes = $attributes;
     }
 
+    public function isNew(): bool
+    {
+        return $this->isNew;
+    }
+
+    public function setIsNew(bool $isNew): void
+    {
+        $this->isNew = $isNew;
+    }
     /**
      * @param string $name
-     * @return  mixed
+     * @return ?mixed
      * @throws AttributeNotFound
      */
-    public function get(string $name): array
+    public function get(string $name): ?string
     {
         if (!isset($this->attributes[$name])) {
-            throw new AttributeNotFound("Attribute {$name} not found");
+            return null;
         }
         return $this->attributes[$name];
     }
+    public function getId(): ?string
+    {
+        return $this->id;
+    }
 
+    public function hasId(): bool
+    {
+        return $this->id !== null;
+    }
+
+    public function getEntityType(): ?string
+    {
+        return $this->entityType;
+    }
+
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
+    public function has(string $name): bool
+    {
+        return isset($this->attributes[$name]);
+    }
     /**
      * @param string $name
      * @param mixed $value
      * @return  void
-     * @throws AttributeNotFound
      */
     public function set(string $name, mixed $value): void
     {
-        if (array_key_exists($name, $this->attributes)){
-            throw new AttributeNotFound("Attribute {$name} not found");
+       $this->attributes[$name] = $value;
+    }
+
+    /**
+     * @param string $id
+     * @return void
+     */
+    public function setId(string $id): void
+    {
+        $this->id = $id;
+    }
+    public function setMultiple(array $attributes): void
+    {
+        foreach ($attributes as $name => $value) {
+            $this->set($name, $value);
         }
-        $this->attributes[$name] = $value;
     }
 
     public function save(): void

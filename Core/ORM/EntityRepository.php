@@ -3,15 +3,20 @@
 namespace Core\ORM;
 
 use Core\ORM\Exceptions\EntityNotFound;
-
+use DI\Container;
+use Core\Utils\Config\Manager as ConfigManager;
 class EntityRepository
 {
 
-    public function __construct(
-        private readonly QueryBuilder $queryBuilder,
-        private readonly Database $database
-    )
+    private readonly Database $database;
+    private readonly ConfigManager $configManager;
+    private readonly QueryBuilder $queryBuilder;
+    public function __construct(private readonly string $entityType)
     {
+        $this->configManager = new ConfigManager();
+        $this->database = new Database($this->configManager);
+        $this->queryBuilder = new QueryBuilder();
+        $this->queryBuilder->from($this->entityType);
     }
     /*public function find(): Entity
     {
@@ -38,19 +43,70 @@ class EntityRepository
 
     public function getNewEntity(): Entity
     {
-        return new Entity();
+        $entity =new Entity($this->entityType);
+        $entity->setIsNew(true);
+        return $entity;
     }
 
-    private  function getTableInfo(): array
+    public function createEntity($data = [], array $options = []): Entity
     {
-        $sql = "DESCRIBE {$this->queryBuilder->getParams()['from']}";
-        $stm = $this->database->query($sql);
-        return $this->database->fetch($stm);
+        $entity = $this->getNewEntity();
+        $entity->setIsNew(true);
+        $entity->setMultiple($data);
+
+        $this->saveEntity($entity, $options);
+
+        return $entity;
     }
-    public function from(string $table): self
+
+    private function getEntity(string $entityType, ?string $id = null): Entity
     {
-        $this->queryBuilder->from($table);
-        return $this;
+        $entity = new $entityType();
+        if ($id !== null) {
+            $entity->set('id', $id);
+        }
+        return $entity;
+    }
+
+    public function getEntityById(string $id): Entity
+    {
+        $this->where(['id' => $id]);
+        $this->limit(1, 0);
+
+        $sql = $this->queryBuilder->build();
+        $stm = $this->database->query($sql);
+        $response = $this->database->fetch($stm);
+        if (count($response) === 0) {
+            throw new EntityNotFound("Entity not found");
+        }
+        return new Entity($this->entityType,$response[0]);
+    }
+
+    public function saveEntity(Entity $entity, array $options = []): Entity
+    {
+        if ($entity->isNew()) {
+            $this->insert($entity, $options);
+        } else {
+            $this->updateEntity($entity, $options);
+        }
+
+        return $entity;
+    }
+
+    private function insert(Entity $entity, array $options = []): void
+    {
+        $sql = $this->queryBuilder->insertBuilder($entity);
+        $id = $this->database->insertQuery($sql);
+        $entity->setId($id);
+        $entity->setIsNew(false);
+    }
+
+    private function updateEntity(Entity $entity, array $options = []): void
+    {
+        $sql = $this->queryBuilder->updateBuilder($entity);
+        $params = $entity->getAttributes();
+        $params['id'] = $entity->getId();
+        $this->database->query($sql, $params);
     }
     public function select(array $columns): self
     {

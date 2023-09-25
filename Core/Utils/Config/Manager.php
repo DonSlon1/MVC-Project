@@ -10,7 +10,7 @@ use Core\Utils\{
 class Manager
 {
     private ?array $data = null;
-    private string $configPath = '../App/Config/config.php';
+    private string $configPath;
     private readonly FileManager $fileManager;
     private array $changedData = [];
     protected array $associativeArrayAttributeList = [
@@ -21,6 +21,11 @@ class Manager
     ];
     public function __construct()
     {
+        if (dirname($_SERVER['DOCUMENT_ROOT']) === '')
+            $this->configPath = '/var/httpd/dummy-host2/App/Config/config.php';
+        else{
+            $this->configPath = dirname($_SERVER['DOCUMENT_ROOT']) . '/App/Config/config.php';
+        }
         $this->fileManager = new FileManager($this);
     }
 

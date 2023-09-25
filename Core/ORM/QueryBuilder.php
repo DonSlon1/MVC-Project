@@ -51,6 +51,24 @@ class QueryBuilder
         return $this;
     }
 
+    public function updateBuilder(Entity $entity):string
+    {
+        //prepere sql query for execute
+        $sql = 'UPDATE ' . $entity->getEntityType() . ' SET ';
+        $sql .= implode(' , ', array_map(fn($key) => "$key = :$key", array_keys($entity->getAttributes()), ));
+        $sql .= ' WHERE id = :id';
+        return $sql;
+
+    }
+    public function insertBuilder(Entity $entity):string
+    {
+        $sql = 'INSERT INTO ' . $entity->getEntityType() . ' (';
+        $sql .= implode(', ', array_keys($entity->getAttributes()));
+        $sql .= ') VALUES (';
+        $sql .= implode(', ', array_map(fn($value) => "'$value'", array_values($entity->getAttributes())));
+        $sql .= ')';
+        return $sql;
+    }
     public function build():string
     {
         $sql = '';
@@ -65,7 +83,9 @@ class QueryBuilder
         }
 
         if (isset($this->params['where'])) {
-            $sql .= ' WHERE ' . implode(' AND ', $this->params['where']);
+
+            $sql .= ' WHERE ';
+            $sql .= implode(' AND ', array_map(fn($key, $value) => "$key = '$value'", array_keys($this->params['where']), array_values($this->params['where'])));
         }
 
         if (isset($this->params['orderBy'])) {

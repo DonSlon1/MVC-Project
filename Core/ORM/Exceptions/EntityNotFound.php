@@ -2,7 +2,9 @@
 
 namespace Core\ORM\Exceptions;
 
-class EntityNotFound extends \RuntimeException
+use RuntimeException;
+
+class EntityNotFound extends RuntimeException
 {
 
 }

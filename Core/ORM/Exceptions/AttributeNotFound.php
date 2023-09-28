@@ -2,7 +2,9 @@
 
 namespace Core\ORM\Exceptions;
 
-class AttributeNotFound extends \RuntimeException
+use RuntimeException;
+
+class AttributeNotFound extends RuntimeException
 {
 
 }

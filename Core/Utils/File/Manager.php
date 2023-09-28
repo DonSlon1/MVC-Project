@@ -106,7 +106,7 @@ class Manager
             return false;
         }
 
-        $umask = umask(0);
+        umask(0);
         return @chmod($path, $permission);
     }
 
@@ -169,7 +169,7 @@ class Manager
      * @param int $flags Flags for file_put_contents().
      * @return bool
      */
-    public function putContents(string $path, $data, int $flags = 0,): bool
+    public function putContents(string $path, $data, int $flags = 0): bool
     {
         if ($this->checkCreateFile($path) === false) {
             throw new PermissionError('Permission denied for '. $path);

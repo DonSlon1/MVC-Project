@@ -55,7 +55,7 @@ class QueryBuilder
     {
         //prepere sql query for execute
         $sql = 'UPDATE ' . $entity->getEntityType() . ' SET ';
-        $sql .= implode(' , ', array_map(fn($key) => "$key = :$key", array_keys($entity->getAttributes()), ));
+        $sql .= implode(' , ', array_map(fn($key) => "$key = :$key", array_keys($entity->getAttributes())));
         $sql .= ' WHERE id = :id';
         return $sql;
 

@@ -2,7 +2,9 @@
 
 namespace Core\ORM\Exceptions;
 
-class UnableExecuteQuery extends \RuntimeException
+use RuntimeException;
+
+class UnableExecuteQuery extends RuntimeException
 {
 
 }

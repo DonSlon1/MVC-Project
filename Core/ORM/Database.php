@@ -7,7 +7,7 @@ use PDO;
 use PDOStatement;
 class Database
 {
-    private ?PDO $conn = null;
+    private ?PDO $conn;
     public function __construct(
         private readonly ConfigManager $configManager,
     )

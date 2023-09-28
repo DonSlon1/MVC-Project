@@ -4,11 +4,13 @@ require 'vendor/autoload.php';
 use DI\Container as DIContainer;
 use Core\ORM\Database;
 use Core\Utils\File\Manager as FileManager;
+use Core\Utils\Config\Manager as ConfigManager;
 
 
 $container = new DIContainer();
 $db = $container->get(Database::class);
 $fileManager = $container->get(FileManager::class);
+$configManager = new ConfigManager();
 $sql = "SHOW TABLES";
 
 $stm = $db->query($sql);
@@ -63,7 +65,6 @@ foreach ($resoult as $table) {
     $tables[$table] = $tableInfo;
 }
 foreach ($tables as $key => $value) {
-    $fileManager->putJsonContents("/var/httpd/dummy-host2/App/Resources/entityDef1/$key.json", $value);
+    $fileManager->putJsonContents($configManager->get('rootDir')."App/Resources/entityDef/$key.json", $value);
 }
-// print_r($resoult);
 

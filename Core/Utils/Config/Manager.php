@@ -21,11 +21,7 @@ class Manager
     ];
     public function __construct()
     {
-        if (dirname($_SERVER['DOCUMENT_ROOT']) === '')
-            $this->configPath = '/var/httpd/dummy-host2/App/Config/config.php';
-        else{
-            $this->configPath = dirname($_SERVER['DOCUMENT_ROOT']) . '/App/Config/config.php';
-        }
+        $this->configPath = dirname(__DIR__,3).'/App/Config/config.php';
         $this->fileManager = new FileManager($this);
     }
 

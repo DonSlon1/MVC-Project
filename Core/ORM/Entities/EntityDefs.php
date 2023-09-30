@@ -9,7 +9,6 @@ use Exception;
 
 class EntityDefs
 {
-    public string $tableName;
 
     public function __construct(
         private readonly ConfigManager $configManager,
@@ -19,9 +18,16 @@ class EntityDefs
     {
     }
 
+    /**
+     * @throws Exception
+     */
     public function getEntityDefs(string $entityType): array
     {
         $rootDir = $this->configManager->get('rootDir');
+        $entityDefsFile = $rootDir . '/App/Resources/entityDef/' . $entityType . '.json';
+        if (!file_exists($entityDefsFile)) {
+            $this->createEntityDefs($entityType);
+        }
         return $this->fileManager->getJsonContents($rootDir . '/App/Resources/'.$entityType.'.json');
     }
 
@@ -66,10 +72,8 @@ class EntityDefs
                 COLUMN_TYPE as 'columnType'
             FROM information_schema.COLUMNS WHERE TABLE_NAME = '$entityType';
         ";
-        echo $entityType;
         $stm = $this->db->query($sql);
         $columns = $this->db->fetch($stm);
-        echo 'druhy funguje';
         foreach ($columns as $key => $value) {
             foreach ($tableInfo['relations'] as $relation) {
                 if ($relation['columnName'] === $value['columnName'] && $relation['tableName'] === $entityType) {
@@ -83,11 +87,12 @@ class EntityDefs
 
     private  function saveEntityDefs(string $entityType, array $entityDefs): void
     {
-
         $entityName = ucfirst($entityType);
         $this->fileManager->putJsonContents($this->configManager->get('rootDir')."App/Resources/entityDef/$entityName.json", $entityDefs);
         $this->fileManager->putContents($this->configManager->get('rootDir')."App/Entities/$entityName.php", "<?php
 namespace App\Entities;
+
+use Core\ORM\Entities\Entity;
 
 class $entityName extends Entity 
 {

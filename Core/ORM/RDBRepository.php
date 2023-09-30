@@ -2,10 +2,11 @@
 
 namespace Core\ORM;
 
+use Core\ORM\Entities\Entity;
 use Core\ORM\Exceptions\EntityNotFound;
-use DI\Container;
 use Core\Utils\Config\Manager as ConfigManager;
-class EntityRepository
+
+class RDBRepository
 {
 
     private readonly Database $database;

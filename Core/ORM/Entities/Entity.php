@@ -1,10 +1,12 @@
 <?php
 
-namespace Core\ORM;
+namespace Core\ORM\Entities;
 
 use Core\ORM\Exceptions\AttributeNotFound;
+
 class Entity
 {
+    public const ENTITY_NAME = self::ENTITY_NAME;
     private array $attributes;
     private ?string $id;
     private ?bool $isNew = false;
@@ -71,7 +73,11 @@ class Entity
      */
     public function set(string $name, mixed $value): void
     {
-       $this->attributes[$name] = $value;
+        if (array_key_exists($name, $this->attributes)) {
+            $this->attributes[$name] = $value;
+        } else {
+            throw new AttributeNotFound("Attribute $name not found in entity " . static::ENTITY_NAME);
+        }
     }
 
     /**

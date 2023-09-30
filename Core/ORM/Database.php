@@ -60,6 +60,7 @@ class Database
     {
         $stm->setFetchMode($flags);
         $fetchData = $stm->fetchAll();
+        $stm->closeCursor();
         if ($fetchData === false) {
             return [];
         }

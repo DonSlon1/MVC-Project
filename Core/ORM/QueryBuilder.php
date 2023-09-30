@@ -2,6 +2,8 @@
 
 namespace Core\ORM;
 
+use Core\ORM\Entities\Entity;
+
 class QueryBuilder
 {
     private array $params = [];

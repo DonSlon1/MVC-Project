@@ -7,18 +7,15 @@ use Core\ORM\Exceptions\AttributeNotFound;
 class Entity
 {
     public const ENTITY_NAME = self::ENTITY_NAME;
-    private array $attributes;
+    private array $attributes = [];
     private ?string $id;
     private ?bool $isNew = false;
-    public function __construct(private readonly string $entityType, ?array $attributes = [])
+    public function __construct(array $fieldsDefs,  private readonly array $relations)
     {
-        if (isset($attributes['id'])) {
-            $this->id = $attributes['id'];
-            unset($attributes['id']);
-        }else{
-            $this->id = null;
+        foreach ($fieldsDefs as $fieldDef) {
+            if ($fieldDef["columnName"] !== 'id')
+                $this->attributes[$fieldDef['columnName']] = $fieldDef['columnDefault'] ?? null;
         }
-        $this->attributes = $attributes;
     }
 
     public function isNew(): bool
@@ -54,7 +51,7 @@ class Entity
 
     public function getEntityType(): ?string
     {
-        return $this->entityType;
+        return static::ENTITY_NAME;
     }
 
     public function getAttributes(): array

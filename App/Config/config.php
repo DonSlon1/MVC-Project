@@ -9,8 +9,8 @@ return[
         'user' => 'mvc-projekt',
         'password' => 'mvc-projekt'
     ],
-    'logDir' => dirname(__DIR__, 2).'/data/log/',
-    'rootDir' => dirname(__DIR__, 2).'/',
+    'logDir' => dirname(__DIR__, 2).'data/log/',
+    'rootDir' => dirname(__DIR__, 2),
     'defaultPermissions' => [
         'dir' => 0775,
         'file' => 0664

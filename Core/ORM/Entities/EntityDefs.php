@@ -24,11 +24,12 @@ class EntityDefs
     public function getEntityDefs(string $entityType): array
     {
         $rootDir = $this->configManager->get('rootDir');
+        // todo impelement file finder
         $entityDefsFile = $rootDir . '/App/Resources/entityDef/' . $entityType . '.json';
         if (!file_exists($entityDefsFile)) {
             $this->createEntityDefs($entityType);
         }
-        return $this->fileManager->getJsonContents($rootDir . '/App/Resources/'.$entityType.'.json');
+        return $this->fileManager->getJsonContents($entityDefsFile);
     }
 
     /**
@@ -69,7 +70,8 @@ class EntityDefs
                 COLUMN_NAME as 'columnName',
                 DATA_TYPE as 'dataType',
                 IS_NULLABLE as 'isNullable',
-                COLUMN_TYPE as 'columnType'
+                COLUMN_TYPE as 'columnType',
+                COLUMN_DEFAULT as 'columnDefault'
             FROM information_schema.COLUMNS WHERE TABLE_NAME = '$entityType';
         ";
         $stm = $this->db->query($sql);
@@ -88,8 +90,8 @@ class EntityDefs
     private  function saveEntityDefs(string $entityType, array $entityDefs): void
     {
         $entityName = ucfirst($entityType);
-        $this->fileManager->putJsonContents($this->configManager->get('rootDir')."App/Resources/entityDef/$entityName.json", $entityDefs);
-        $this->fileManager->putContents($this->configManager->get('rootDir')."App/Entities/$entityName.php", "<?php
+        $this->fileManager->putJsonContents($this->configManager->get('rootDir')."/App/Resources/entityDef/$entityName.json", $entityDefs);
+        $this->fileManager->putContents($this->configManager->get('rootDir')."/App/Entities/$entityName.php", "<?php
 namespace App\Entities;
 
 use Core\ORM\Entities\Entity;

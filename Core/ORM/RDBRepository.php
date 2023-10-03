@@ -5,19 +5,24 @@ namespace Core\ORM;
 use Core\ORM\Entities\Entity;
 use Core\ORM\Exceptions\EntityNotFound;
 use Core\Utils\Config\Manager as ConfigManager;
-
+use Core\ORM\Entities\EntityFactory;
+use Di\Container as DiContainer;
 class RDBRepository
 {
 
     private readonly Database $database;
     private readonly ConfigManager $configManager;
+    private readonly EntityFactory $entityFactory;
+    private readonly DiContainer $container;
     private readonly QueryBuilder $queryBuilder;
     public function __construct(private readonly string $entityType)
     {
+        $this->container = new DiContainer();
         $this->configManager = new ConfigManager();
         $this->database = new Database($this->configManager);
         $this->queryBuilder = new QueryBuilder();
         $this->queryBuilder->from($this->entityType);
+        $this->entityFactory = $this->container->get(EntityFactory::class);
     }
     /*public function find(): Entity
     {
@@ -37,14 +42,13 @@ class RDBRepository
             throw new EntityNotFound("Entity not found");
         }
         $entity = $response[0];
-        return new Entity($entity);
-
+        return $this->entityFactory->create($this->entityType);
     }
 
 
     public function getNewEntity(): Entity
     {
-        $entity =new Entity($this->entityType);
+        $entity = $this->entityFactory->create($this->entityType);
         $entity->setIsNew(true);
         return $entity;
     }

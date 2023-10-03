@@ -77,6 +77,21 @@ class EntityDefs
         $stm = $this->db->query($sql);
         $columns = $this->db->fetch($stm);
         foreach ($columns as $key => $value) {
+            if ($value['isNullable'] === 'NO') {
+                $columns[$key]['isNullable'] = false;
+            } else {
+                $columns[$key]['isNullable'] = true;
+            }
+
+            if ($value['columnDefault'] === "NULL" || $value['columnDefault'] === null) {
+                $columns[$key]['columnDefault'] = null;
+            }
+            elseif (is_numeric($value['columnDefault'])) {
+                $columns[$key]['columnDefault'] = (int)$value['columnDefault'];
+            }
+            else {
+                $columns[$key]['columnDefault'] = substr($value['columnDefault'], 1, -1);
+            }
             foreach ($tableInfo['relations'] as $relation) {
                 if ($relation['columnName'] === $value['columnName'] && $relation['tableName'] === $entityType) {
                     $columns[$key]['type'] = 'link';

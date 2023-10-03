@@ -23,6 +23,19 @@ class Entity
         return $this->isNew;
     }
 
+    public function getAttributesMap(): array
+    {
+        return $this->attributes;
+    }
+    public function getRelationsMap(): array
+    {
+        return $this->relations;
+    }
+
+    public function hasRelation(string $name): bool
+    {
+        return isset($this->relations[$name]);
+    }
     public function setIsNew(bool $isNew): void
     {
         $this->isNew = $isNew;

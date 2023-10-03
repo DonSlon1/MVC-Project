@@ -7,14 +7,15 @@ use Core\Utils\File\Exceptions\{
     FileError,
     PermissionError
 };
+use RecursiveDirectoryIterator;
 
 class Manager
 {
     private ?array $permissions ;
 
     public function __construct(
-        private readonly ConfigManager $configManager,
-        array $permissions = null,
+        protected readonly ConfigManager $configManager,
+        array                            $permissions = null,
     )
     {
         $this->permissions = $permissions;
@@ -228,6 +229,27 @@ class Manager
         }
 
         return $data;
+    }
+
+    function findDirs(string $path, string $pattern ): array
+    {
+        $iterator = new RecursiveDirectoryIterator($path);
+        $dirs = [];
+
+        foreach ($iterator as $file) {
+
+            if ($file->isDir() && $file->getFilename() === $pattern) {
+                $dirs[] = $file->getPathname();
+            }
+
+            if ($file->isDir() && $file->getFilename() !== $pattern &&
+                $file->getFilename() !== '..' && $file->getFilename() !== '.')
+            {
+                $dirs = array_merge($dirs, $this->findDirs($file->getPathname(), $pattern));
+            }
+        }
+
+        return $dirs;
     }
 
     public function putJsonContents(string $path, mixed $data, int $flags = 0): bool

@@ -6,6 +6,11 @@
         }
     },
     "require": {
-        "mustache/mustache": "^2.14"
-    }
+        "mustache/mustache": "^2.14",
+        "php-di/php-di": "^7.0",
+        "ext-pdo": "*"
+    },
+    "license": [
+        "Apache-2.0"
+    ]
 }

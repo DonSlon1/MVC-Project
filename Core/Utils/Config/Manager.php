@@ -10,7 +10,7 @@ use Core\Utils\{
 class Manager
 {
     private ?array $data = null;
-    private string $configPath = '../App/Config/config.php';
+    private string $configPath;
     private readonly FileManager $fileManager;
     private array $changedData = [];
     protected array $associativeArrayAttributeList = [
@@ -21,6 +21,7 @@ class Manager
     ];
     public function __construct()
     {
+        $this->configPath = dirname(__DIR__,3).'/App/Config/config.php';
         $this->fileManager = new FileManager($this);
     }
 

@@ -7,14 +7,15 @@ use Core\Utils\File\Exceptions\{
     FileError,
     PermissionError
 };
+use RecursiveDirectoryIterator;
 
 class Manager
 {
     private ?array $permissions ;
 
     public function __construct(
-        private readonly ConfigManager $configManager,
-        array $permissions = null,
+        protected readonly ConfigManager $configManager,
+        array                            $permissions = null,
     )
     {
         $this->permissions = $permissions;
@@ -106,7 +107,7 @@ class Manager
             return false;
         }
 
-        $umask = umask(0);
+        umask(0);
         return @chmod($path, $permission);
     }
 
@@ -169,7 +170,7 @@ class Manager
      * @param int $flags Flags for file_put_contents().
      * @return bool
      */
-    public function putContents(string $path, $data, int $flags = 0,): bool
+    public function putContents(string $path, $data, int $flags = 0): bool
     {
         if ($this->checkCreateFile($path) === false) {
             throw new PermissionError('Permission denied for '. $path);
@@ -228,6 +229,27 @@ class Manager
         }
 
         return $data;
+    }
+
+    function findDirs(string $path, string $pattern ): array
+    {
+        $iterator = new RecursiveDirectoryIterator($path);
+        $dirs = [];
+
+        foreach ($iterator as $file) {
+
+            if ($file->isDir() && $file->getFilename() === $pattern) {
+                $dirs[] = $file->getPathname();
+            }
+
+            if ($file->isDir() && $file->getFilename() !== $pattern &&
+                $file->getFilename() !== '..' && $file->getFilename() !== '.')
+            {
+                $dirs = array_merge($dirs, $this->findDirs($file->getPathname(), $pattern));
+            }
+        }
+
+        return $dirs;
     }
 
     public function putJsonContents(string $path, mixed $data, int $flags = 0): bool

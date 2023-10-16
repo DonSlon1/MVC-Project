@@ -53,7 +53,7 @@ class QueryBuilder
         return $this;
     }
 
-    public function updateBuilder(Entity $entity):string
+    public function update(Entity $entity):string
     {
         //prepere sql query for execute
         $sql = 'UPDATE ' . $entity->getEntityType() . ' SET ';
@@ -62,7 +62,7 @@ class QueryBuilder
         return $sql;
 
     }
-    public function insertBuilder(Entity $entity):string
+    public function insert(Entity $entity):string
     {
         $sql = 'INSERT INTO ' . $entity->getEntityType() . ' (';
         $sql .= implode(', ', array_keys($entity->getAttributes()));

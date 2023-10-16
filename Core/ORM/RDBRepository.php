@@ -92,7 +92,7 @@ class RDBRepository
         if ($entity->isNew()) {
             $this->insert($entity, $options);
         } else {
-            $this->updateEntity($entity, $options);
+            $this->update($entity, $options);
         }
 
         return $entity;
@@ -100,15 +100,15 @@ class RDBRepository
 
     private function insert(Entity $entity, array $options = []): void
     {
-        $sql = $this->queryBuilder->insertBuilder($entity);
+        $sql = $this->queryBuilder->insert($entity);
         $id = $this->database->insertQuery($sql);
         $entity->setId($id);
         $entity->setIsNew(false);
     }
 
-    private function updateEntity(Entity $entity, array $options = []): void
+    private function update(Entity $entity, array $options = []): void
     {
-        $sql = $this->queryBuilder->updateBuilder($entity);
+        $sql = $this->queryBuilder->update($entity);
         $params = $entity->getAttributes();
         $params['id'] = $entity->getId();
         $this->database->query($sql, $params);

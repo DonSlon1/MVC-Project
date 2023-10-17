@@ -49,25 +49,25 @@ class QueryBuilder
 
     public function from(string $table):self
     {
+        $table = strtolower($table);
         $this->params['from'] = $table;
         return $this;
     }
 
     public function update(Entity $entity):string
     {
-        //prepere sql query for execute
-        $sql = 'UPDATE ' . $entity->getEntityType() . ' SET ';
-        $sql .= implode(' , ', array_map(fn($key) => "$key = :$key", array_keys($entity->getAttributes())));
+        $sql = 'UPDATE ' . $entity->getDbEntityName() . ' SET ';
+        $sql .= implode(' , ', array_map(fn($key) => "$key = :$key", $entity->getEntityMap()));
         $sql .= ' WHERE id = :id';
         return $sql;
 
     }
     public function insert(Entity $entity):string
     {
-        $sql = 'INSERT INTO ' . $entity->getEntityType() . ' (';
-        $sql .= implode(', ', array_keys($entity->getAttributes()));
+        $sql = 'INSERT INTO ' . $entity->getDbEntityName() . ' (';
+        $sql .= implode(', ', $entity->getEntityMap());
         $sql .= ') VALUES (';
-        $sql .= implode(', ', array_map(fn($value) => "'$value'", array_values($entity->getAttributes())));
+        $sql .= implode(' , ', array_map(fn($key) => " :$key ", $entity->getEntityMap()));
         $sql .= ')';
         return $sql;
     }

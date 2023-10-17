@@ -2,17 +2,18 @@
 
 namespace Core\ORM\Entities;
 
+use Core\ORM\EntityMapper;
 use Core\ORM\Exceptions\AttributeNotFound;
 
 class Entity
 {
     public const ENTITY_NAME = self::ENTITY_NAME;
-    private array $attributes = [];
-    private ?string $id;
+    protected array $attributes = [];
+    private ?string $id = null;
     private ?bool $isNew = false;
-    public function __construct(array $fieldsDefs,  private readonly array $relations)
+    public function __construct(protected array $attributesMap,  private readonly array $relations)
     {
-        foreach ($fieldsDefs as $fieldDef) {
+        foreach ($this->attributesMap as $fieldDef) {
             if ($fieldDef["columnName"] !== 'id')
                 $this->attributes[$fieldDef['columnName']] = $fieldDef['columnDefault'] ?? null;
         }
@@ -25,7 +26,7 @@ class Entity
 
     public function getAttributesMap(): array
     {
-        return $this->attributes;
+        return $this->attributesMap;
     }
     public function getRelationsMap(): array
     {
@@ -47,6 +48,9 @@ class Entity
      */
     public function get(string $name): ?string
     {
+        if (method_exists($this,'get'.ucfirst($name))) {
+            return $this->{'get' . ucfirst($name)}();
+        }
         if (!isset($this->attributes[$name])) {
             return null;
         }
@@ -62,14 +66,19 @@ class Entity
         return $this->id !== null;
     }
 
-    public function getEntityType(): ?string
+    public function getDbEntityName(): string
     {
-        return static::ENTITY_NAME;
+       return strtolower(static::ENTITY_NAME);
     }
 
     public function getAttributes(): array
     {
         return $this->attributes;
+    }
+
+    public function getEntityMap(): array
+    {
+       return EntityMapper::map($this);
     }
 
     public function has(string $name): bool
@@ -85,7 +94,10 @@ class Entity
     {
         if (array_key_exists($name, $this->attributes)) {
             $this->attributes[$name] = $value;
-        } else {
+        } elseif (property_exists($this, $name)) {
+            $this->$name = $value;
+        }
+        else {
             throw new AttributeNotFound("Attribute $name not found in entity " . static::ENTITY_NAME);
         }
     }

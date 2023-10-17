@@ -7,13 +7,13 @@ use Core\Utils\Config\Manager as ConfigManager;
 use Core\Utils\File\Manager as FileManager;
 use Exception;
 
-class EntityDefs
+readonly class EntityDefs
 {
 
     public function __construct(
-        private readonly ConfigManager $configManager,
-        private readonly FileManager $fileManager,
-        private readonly Database $db,
+        private ConfigManager $configManager,
+        private FileManager   $fileManager,
+        private Database      $db,
     )
     {
     }

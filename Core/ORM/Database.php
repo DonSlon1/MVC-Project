@@ -3,6 +3,7 @@
 namespace Core\ORM;
 
 use Core\Utils\Config\Manager as ConfigManager;
+use Core\Utils\Log;
 use PDO;
 use PDOStatement;
 class Database
@@ -10,6 +11,7 @@ class Database
     private ?PDO $conn;
     public function __construct(
         private readonly ConfigManager $configManager,
+        private readonly Log $log
     )
     {
         $this->conn = $this->connect();
@@ -34,7 +36,12 @@ class Database
     public function query(string $sql, array $params= []): PDOStatement
     {
         $stm = $this->conn->prepare($sql);
-        $stm->execute($params);
+        try {
+            $stm->execute($params);
+        } catch (\PDOException $e) {
+            $this->log->error($e->getMessage());
+            echo $e->getMessage();
+        }
         return $stm;
     }
 

@@ -6,20 +6,28 @@ use Core\ORM\Entities\Entity;
 use Core\ORM\Exceptions\EntityNotFound;
 use Core\Utils\Config\Manager as ConfigManager;
 use Core\ORM\Entities\EntityFactory;
+use Core\Utils\Log;
 use Di\Container as DiContainer;
+use Exception;
+
 class RDBRepository
 {
 
     private readonly Database $database;
     private readonly ConfigManager $configManager;
+
+    private readonly Log $log;
     private readonly EntityFactory $entityFactory;
     private readonly DiContainer $container;
     private readonly QueryBuilder $queryBuilder;
-    public function __construct(private readonly string $entityType)
+    private readonly string $entityType;
+    public function __construct(string $entityType)
     {
+        $this->entityType = $entityType;
         $this->container = new DiContainer();
         $this->configManager = new ConfigManager();
-        $this->database = new Database($this->configManager);
+        $this->database = $this->container->get(Database::class);
+        $this->log = $this->container->get(Log::class);
         $this->queryBuilder = new QueryBuilder();
         $this->queryBuilder->from($this->entityType);
         $this->entityFactory = $this->container->get(EntityFactory::class);
@@ -32,17 +40,24 @@ class RDBRepository
         $entity = new Entity();
 
     }*/
-    public function findOne(): Entity
+    public function findOne(): ?Entity
     {
         $this->limit(1, 0);
         $sql = $this->queryBuilder->build();
         $stm = $this->database->query($sql);
         $response = $this->database->fetch($stm);
         if (count($response) === 0) {
-            throw new EntityNotFound("Entity not found");
+            return null;
         }
-        $entity = $response[0];
-        return $this->entityFactory->create($this->entityType);
+        $data = $response[0];
+        try {
+            $entity = $this->entityFactory->create($this->entityType);
+        } catch (Exception $e) {
+            $this->log->error($e->getMessage());
+            return null;
+        }
+        $entity->setMultiple($data);
+        return $entity;
     }
 
 
@@ -58,7 +73,6 @@ class RDBRepository
         $entity = $this->getNewEntity();
         $entity->setIsNew(true);
         $entity->setMultiple($data);
-
         $this->saveEntity($entity, $options);
 
         return $entity;
@@ -73,7 +87,7 @@ class RDBRepository
         return $entity;
     }
 
-    public function getEntityById(string $id): Entity
+    public function getEntityById(string $id): ?Entity
     {
         $this->where(['id' => $id]);
         $this->limit(1, 0);
@@ -84,24 +98,33 @@ class RDBRepository
         if (count($response) === 0) {
             throw new EntityNotFound("Entity not found");
         }
-        return new Entity($this->entityType,$response[0]);
+        try {
+            $entity = $this->entityFactory->create($this->entityType);
+        }catch (Exception $e){
+            $this->log->error($e->getMessage());
+            return null;
+        }
+        $entity->setMultiple($response[0]);
+        return $entity;
     }
 
-    public function saveEntity(Entity $entity, array $options = []): Entity
+    public function saveEntity(Entity $entity, array $options = []): void
     {
         if ($entity->isNew()) {
             $this->insert($entity, $options);
         } else {
             $this->update($entity, $options);
         }
-
-        return $entity;
     }
 
     private function insert(Entity $entity, array $options = []): void
     {
         $sql = $this->queryBuilder->insert($entity);
-        $id = $this->database->insertQuery($sql);
+        $params = [];
+        foreach ($entity->getEntityMap() as $field) {
+            $params[$field] = $entity->get($field);
+        }
+        $id = $this->database->insertQuery($sql, $params);
         $entity->setId($id);
         $entity->setIsNew(false);
     }
@@ -109,8 +132,10 @@ class RDBRepository
     private function update(Entity $entity, array $options = []): void
     {
         $sql = $this->queryBuilder->update($entity);
-        $params = $entity->getAttributes();
-        $params['id'] = $entity->getId();
+        $params = [];
+        foreach ($entity->getEntityMap() as $field) {
+            $params[$field] = $entity->get($field);
+        }
         $this->database->query($sql, $params);
     }
     public function select(array $columns): self
